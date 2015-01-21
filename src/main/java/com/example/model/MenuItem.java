@@ -2,33 +2,31 @@ package com.example.model;
 
 import org.springframework.cassandra.core.Ordering;
 import org.springframework.cassandra.core.PrimaryKeyType;
-import org.springframework.data.cassandra.mapping.*;
+import org.springframework.data.cassandra.mapping.Column;
+import org.springframework.data.cassandra.mapping.PrimaryKeyColumn;
+import org.springframework.data.cassandra.mapping.Table;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
-import java.text.FieldPosition;
 import java.text.NumberFormat;
-import java.text.ParsePosition;
-import java.util.Currency;
 import java.util.Locale;
 import java.util.UUID;
 
-@Table
+@Table("menuItem")
 public class MenuItem {
-
-    @PrimaryKeyColumn(name = "id", ordinal = 2, type = PrimaryKeyType.CLUSTERED, ordering = Ordering.DESCENDING)
+    @PrimaryKeyColumn(name = "id", ordinal = 1, type = PrimaryKeyType.CLUSTERED, ordering = Ordering.DESCENDING)
     private UUID id;
-    @PrimaryKeyColumn(name = "type", ordinal = 0, type = PrimaryKeyType.PARTITIONED)
-    private String type;
-    @PrimaryKeyColumn(name = "menuId", ordinal = 1, type = PrimaryKeyType.PARTITIONED)
+    @PrimaryKeyColumn(name = "menuId", ordinal = 0, type = PrimaryKeyType.PARTITIONED)
     private String menuId;
-    @Column
+    @Column("type")
+    private String type;
+    @Column("name")
     private String name;
-    @Column
+    @Column("description")
     private String description;
-    @Column
+    @Column("locale")
     private String locale;
-    @Column
+    @Column("price")
     private BigDecimal price;
 
     public MenuItem(UUID id, String type, String menuId, String name, String description, String locale, BigDecimal price) {
