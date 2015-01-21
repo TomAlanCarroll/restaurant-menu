@@ -9,7 +9,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.data.cassandra.config.CassandraClusterFactoryBean;
 import org.springframework.data.cassandra.config.CassandraSessionFactoryBean;
-import org.springframework.data.cassandra.config.SchemaAction;
 import org.springframework.data.cassandra.convert.CassandraConverter;
 import org.springframework.data.cassandra.convert.MappingCassandraConverter;
 import org.springframework.data.cassandra.core.CassandraOperations;
@@ -19,8 +18,8 @@ import org.springframework.data.cassandra.mapping.CassandraMappingContext;
 import org.springframework.data.cassandra.repository.config.EnableCassandraRepositories;
 
 @Configuration
-@PropertySource(value = { "classpath:cassandra.properties" })
-@EnableCassandraRepositories(basePackages = { "org.spring.cassandra.example.repo" })
+@PropertySource("classpath:cassandra.properties")
+@EnableCassandraRepositories(basePackages = {"com.example.db"})
 public class CassandraConfig {
 
     private static final Logger LOG = LoggerFactory.getLogger(CassandraConfig.class);
@@ -55,13 +54,12 @@ public class CassandraConfig {
         session.setCluster(cluster().getObject());
         session.setKeyspaceName(env.getProperty("cassandra.keyspace"));
         session.setConverter(converter());
-        session.setSchemaAction(SchemaAction.NONE);
 
         return session;
     }
 
     @Bean
-    public CassandraOperations cassandraTemplate() throws Exception {
+    public CassandraOperations cassandraOperationsTemplate() throws Exception {
         return new CassandraTemplate(session().getObject());
     }
 }
