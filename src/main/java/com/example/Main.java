@@ -1,23 +1,39 @@
 package com.example;
 
+import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.querybuilder.QueryBuilder;
+import com.datastax.driver.core.querybuilder.Select;
+import com.example.db.CassandraConfig;
+import com.example.model.Menu;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.data.cassandra.core.CassandraOperations;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.UUID;
 
 /**
  * Main class.
- *
  */
 public class Main {
     // Base URI the Grizzly HTTP server will listen on
     public static final String BASE_URI = "http://localhost:8080/myapp/";
 
+    private static final Logger LOG = LoggerFactory.getLogger(Main.class);
+
+    private static Cluster cluster;
+    private static Session session;
+
     /**
      * Starts Grizzly HTTP server exposing JAX-RS resources defined in this application.
+     *
      * @return Grizzly HTTP server.
      */
     public static HttpServer startServer() {
@@ -32,10 +48,35 @@ public class Main {
 
     /**
      * Main method.
+     *
      * @param args
      * @throws IOException
      */
     public static void main(String[] args) throws IOException {
+        // Get the config
+        ApplicationContext context = new AnnotationConfigApplicationContext(CassandraConfig.class);
+
+        // Connect to Cassandra
+        try {
+            cluster = (Cluster) context.getBean("cluster");
+
+            session = (Session) context.getBean("session");
+
+            CassandraOperations cassandraOps = (CassandraOperations) context.getBean("cassandraOperationsTemplate");
+
+            cassandraOps.insert(new Menu(UUID.randomUUID(), "Dinner Menu", "menu1", "Orlando, FL"));
+
+            Select s = QueryBuilder.select().from("menu");
+            s.where(QueryBuilder.eq("menuId", "menu1"));
+
+            LOG.info(cassandraOps.select(s, Menu.class).get(0).getId().toString());
+
+            cassandraOps.truncate("menu");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Startup a Grizzly server
         final HttpServer server = startServer();
         System.out.println(String.format("Jersey app started with WADL available at "
                 + "%sapplication.wadl\nHit enter to stop it...", BASE_URI));
