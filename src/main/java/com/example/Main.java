@@ -5,6 +5,7 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.example.db.CassandraConfig;
+import com.example.db.CassandraTestData;
 import com.example.model.Menu;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
@@ -53,28 +54,7 @@ public class Main {
      * @throws IOException
      */
     public static void main(String[] args) throws IOException {
-        // Get the config
-        ApplicationContext context = new AnnotationConfigApplicationContext(CassandraConfig.class);
-
-        // Connect to Cassandra
-        try {
-            cluster = (Cluster) context.getBean("cluster");
-
-            session = (Session) context.getBean("session");
-
-            CassandraOperations cassandraOps = (CassandraOperations) context.getBean("cassandraOperationsTemplate");
-
-            cassandraOps.insert(new Menu(UUID.randomUUID(), "Dinner Menu", "menu1", "Orlando, FL"));
-
-            Select s = QueryBuilder.select().from("menu");
-            s.where(QueryBuilder.eq("menuId", "menu1"));
-
-            LOG.info(cassandraOps.select(s, Menu.class).get(0).getId().toString());
-
-            cassandraOps.truncate("menu");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        CassandraTestData.Load();
 
         // Startup a Grizzly server
         final HttpServer server = startServer();
